@@ -1,0 +1,11 @@
+{
+  "name": "itmosoft/laravel-tax",
+  "description": "A reusable Laravel tax package with tax classes, rates, location-based rules, and inclusive or exclusive tax calculations. Supports Laravel 12 and 13.",
+  "type": "library", "license": "MIT",
+  "require": {"php": "^8.3", "illuminate/contracts": "^12.0 || ^13.0", "illuminate/database": "^12.0 || ^13.0", "illuminate/support": "^12.0 || ^13.0"},
+  "require-dev": {"orchestra/testbench": "^10.0 || ^11.0", "phpunit/phpunit": "^11.0 || ^12.0"},
+  "autoload": {"psr-4": {"ItmoSoft\\Tax\\": "src/"}},
+  "autoload-dev": {"psr-4": {"ItmoSoft\\Tax\\Tests\\": "tests/"}},
+  "extra": {"laravel": {"providers": ["ItmoSoft\\Tax\\TaxServiceProvider"]}},
+  "scripts": {"test": "phpunit"}, "minimum-stability": "stable", "prefer-stable": true
+}
