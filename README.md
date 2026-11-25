@@ -9,6 +9,7 @@ Reusable tax engine for Laravel 12 and 13 / PHP 8.3+.
 - Location rules for country, region, and postal code
 - Scheduled rates and rules
 - Configurable table prefix and model classes
+- Specificity-first rule resolution, followed by priority
 
 ## Install
 ```bash
@@ -21,20 +22,29 @@ php artisan migrate
 ```php
 use ItmoSoft\Tax\Models\TaxClass;
 use ItmoSoft\Tax\Models\TaxRate;
+
 $class = TaxClass::create(['name' => 'Standard VAT', 'code' => 'standard']);
-$rate = TaxRate::create(['tax_class_id' => $class->id, 'name' => 'VAT', 'rate' => 15, 'is_active' => true]);
+$rate = TaxRate::create([
+    'tax_class_id' => $class->id,
+    'name' => 'VAT',
+    'rate' => 15,
+    'is_active' => true,
+]);
 ```
 
 ## Calculate
 ```php
-$result = app(\ItmoSoft\Tax\Services\TaxCalculator::class)->calculate(100, [$rate], inclusive: false);
+$result = app(\ItmoSoft\Tax\Services\TaxCalculator::class)
+    ->calculate(100, [$rate], inclusive: false);
 // net: 100.00, tax: 15.00, gross: 115.00
 ```
 
-Pass `inclusive: true` to extract tax from a gross amount. Rates are percentages. Compound rates apply to the running taxable base.
+Pass `inclusive: true` to extract tax from a gross amount. Rates are percentages. Compound rates apply to the running taxable base. Tax rates must be finite and non-negative; the rounding scale must be between 0 and 14.
 
 ## Resolve location rates
-Create `TaxRule` records linking a tax class and rate. `country`, `region`, and `postal_code` are optional; null fields are wildcards. The resolver selects the most specific matching rule, then the highest priority. If no rule matches, rates with no rules attached are treated as defaults.
+Create `TaxRule` records linking a tax class and a rate. `country`, `region`, and `postal_code` are optional; null fields are wildcards. The resolver selects the most specific matching rule, then the highest priority. Country matching is case-insensitive and trims surrounding whitespace. If no rule matches, active rates with no rules attached are treated as defaults.
+
+Only active tax classes and active, currently scheduled rates/rules are resolved. A resolved rate must belong to the requested tax class. Pass a persisted `TaxClass` model or its positive ID.
 
 ```php
 $rates = app(\ItmoSoft\Tax\Services\TaxResolver::class)->resolve($class, [
@@ -48,7 +58,7 @@ The package calculates supplied rates; it does not determine legal obligations, 
 ## Test
 ```bash
 composer install
-vendor/bin/phpunit
+composer test
 ```
 
 MIT License.
